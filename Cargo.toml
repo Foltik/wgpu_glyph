@@ -12,6 +12,7 @@ readme = "README.md"
 
 [dependencies]
 wgpu = "0.6"
+wgpu_staging = { path = "../wgpu_staging" }
 glyph_brush = "0.7"
 log = "0.4"
 zerocopy = "0.3"

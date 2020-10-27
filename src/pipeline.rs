@@ -44,7 +44,7 @@ impl Pipeline<()> {
     pub fn draw(
         &mut self,
         device: &wgpu::Device,
-        staging_belt: &mut wgpu::util::StagingBelt,
+        staging_pool: &mut wgpu_staging::StagingPool,
         encoder: &mut wgpu::CommandEncoder,
         target: &wgpu::TextureView,
         transform: [f32; 16],
@@ -53,7 +53,7 @@ impl Pipeline<()> {
         draw(
             self,
             device,
-            staging_belt,
+            staging_pool,
             encoder,
             target,
             None,
@@ -85,7 +85,7 @@ impl Pipeline<wgpu::DepthStencilStateDescriptor> {
     pub fn draw(
         &mut self,
         device: &wgpu::Device,
-        staging_belt: &mut wgpu::util::StagingBelt,
+        staging_pool: &mut wgpu_staging::StagingPool,
         encoder: &mut wgpu::CommandEncoder,
         target: &wgpu::TextureView,
         depth_stencil_attachment: wgpu::RenderPassDepthStencilAttachmentDescriptor,
@@ -95,7 +95,7 @@ impl Pipeline<wgpu::DepthStencilStateDescriptor> {
         draw(
             self,
             device,
-            staging_belt,
+            staging_pool,
             encoder,
             target,
             Some(depth_stencil_attachment),
@@ -109,14 +109,14 @@ impl<Depth> Pipeline<Depth> {
     pub fn update_cache(
         &mut self,
         device: &wgpu::Device,
-        staging_belt: &mut wgpu::util::StagingBelt,
+        staging_pool: &mut wgpu_staging::StagingPool,
         encoder: &mut wgpu::CommandEncoder,
         offset: [u16; 2],
         size: [u16; 2],
         data: &[u8],
     ) {
         self.cache
-            .update(device, staging_belt, encoder, offset, size, data);
+            .update(device, staging_pool, encoder, offset, size, data);
     }
 
     pub fn increase_cache_size(
@@ -139,7 +139,7 @@ impl<Depth> Pipeline<Depth> {
     pub fn upload(
         &mut self,
         device: &wgpu::Device,
-        staging_belt: &mut wgpu::util::StagingBelt,
+        staging_pool: &mut wgpu_staging::StagingPool,
         encoder: &mut wgpu::CommandEncoder,
         instances: &[Instance],
     ) {
@@ -163,7 +163,7 @@ impl<Depth> Pipeline<Depth> {
         let instances_bytes = instances.as_bytes();
 
         if let Some(size) = NonZeroU64::new(instances_bytes.len() as u64) {
-            let mut instances_view = staging_belt.write_buffer(
+            let mut instances_view = staging_pool.write_buffer(
                 encoder,
                 &self.instances,
                 0,
@@ -368,7 +368,7 @@ fn build<D>(
 fn draw<D>(
     pipeline: &mut Pipeline<D>,
     device: &wgpu::Device,
-    staging_belt: &mut wgpu::util::StagingBelt,
+    staging_pool: &mut wgpu_staging::StagingPool,
     encoder: &mut wgpu::CommandEncoder,
     target: &wgpu::TextureView,
     depth_stencil_attachment: Option<
@@ -378,7 +378,7 @@ fn draw<D>(
     region: Option<Region>,
 ) {
     if transform != pipeline.current_transform {
-        let mut transform_view = staging_belt.write_buffer(
+        let mut transform_view = staging_pool.write_buffer(
             encoder,
             &pipeline.transform,
             0,

@@ -46,7 +46,7 @@ impl Cache {
     pub fn update(
         &mut self,
         device: &wgpu::Device,
-        staging_belt: &mut wgpu::util::StagingBelt,
+        staging_pool: &mut wgpu_staging::StagingPool,
         encoder: &mut wgpu::CommandEncoder,
         offset: [u16; 2],
         size: [u16; 2],
@@ -77,7 +77,7 @@ impl Cache {
             self.upload_buffer_size = padded_data_size;
         }
 
-        let mut padded_data = staging_belt.write_buffer(
+        let mut padded_data = staging_pool.write_buffer(
             encoder,
             &self.upload_buffer,
             0,
